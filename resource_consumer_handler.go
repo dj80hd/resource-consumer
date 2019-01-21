@@ -106,6 +106,7 @@ func (handler *ResourceConsumerHandler) handleConsumeDisk(w http.ResponseWriter,
 		http.Error(w, "filename or gigabytes missing", http.StatusBadRequest)
 		return
 	}
+	//dd if=/dev/zero of=output.dat bs=1073741824 count=1
 	fmt.Fprintln(w, "ConsumeDisk")
 	fmt.Fprintln(w, "gigabytes ", gigabytesString)
 	fmt.Fprintln(w, "filename ", filename)

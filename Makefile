@@ -28,7 +28,7 @@ cover:
 	gocov convert cov.out | gocov report
 	go tool cover -html=cov.out
 
-docker: dep
+docker: dep build
 	docker build --rm --build-arg GIT_COMMIT="$(COMMIT_SHA)" --tag "$(IMAGE_NAME):latest" .
 
 publish: docker

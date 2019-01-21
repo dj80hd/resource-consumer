@@ -23,18 +23,13 @@ import (
 	"strconv"
 )
 
-const (
-	consumeCPUBinary = "./consume-cpu/consume-cpu"
-	consumeMemBinary = "stress"
-)
-
 //ConsumeCPU starts external process consuming millcores of CPU for durationSec
 func ConsumeCPU(millicores int, durationSec int) {
 	log.Printf("ConsumeCPU millicores: %v, durationSec: %v", millicores, durationSec)
 	// creating new consume cpu process
 	arg1 := fmt.Sprintf("-millicores=%d", millicores)
 	arg2 := fmt.Sprintf("-duration-sec=%d", durationSec)
-	consumeCPU := exec.Command(consumeCPUBinary, arg1, arg2)
+	consumeCPU := exec.Command("/consume-cpu", arg1, arg2)
 	consumeCPU.Run()
 }
 
@@ -44,13 +39,17 @@ func ConsumeMem(megabytes int, durationSec int) {
 	megabytesString := strconv.Itoa(megabytes) + "M"
 	durationSecString := strconv.Itoa(durationSec)
 	// creating new consume memory process
-	consumeMem := exec.Command(consumeMemBinary, "-m", "1", "--vm-bytes", megabytesString, "--vm-hang", "0", "-t", durationSecString)
+	consumeMem := exec.Command("stress", "-m", "1", "--vm-bytes", megabytesString, "--vm-hang", "0", "-t", durationSecString)
 	consumeMem.Run()
 }
 
 //ConsumeDisk creates a file of the specified size
 func ConsumeDisk(gigabytes int, filename string) {
 	log.Printf("ConsumeDisk gigabytes: %v file: %s", gigabytes, filename)
+	arg1 := fmt.Sprintf("of=%s", filename)
+	arg2 := fmt.Sprintf("count=%d", gigabytes)
+	consumeDisk := exec.Command("dd", "if=/dev/zero", "bs=1073741824", arg1, arg2)
+	consumeDisk.Run()
 }
 
 //GetCurrentStatus is not implemented
