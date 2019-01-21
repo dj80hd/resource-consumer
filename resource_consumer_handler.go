@@ -51,14 +51,16 @@ func (handler *ResourceConsumerHandler) ServeHTTP(w http.ResponseWriter, req *ht
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	// handle consumeCPU
 	if req.URL.Path == "/ConsumeCPU" {
 		handler.handleConsumeCPU(w, req.Form)
 		return
 	}
-	// handle consumeMem
 	if req.URL.Path == "/ConsumeMem" {
 		handler.handleConsumeMem(w, req.Form)
+		return
+	}
+	if req.URL.Path == "/ConsumeDisk" {
+		handler.handleConsumeDisk(w, req.Form)
 		return
 	}
 	// handle getCurrentStatus
@@ -82,24 +84,7 @@ func (handler *ResourceConsumerHandler) handleConsumeCPU(w http.ResponseWriter, 
 		http.Error(w, "not", http.StatusBadRequest)
 		return
 	}
-	/*
-		BumpMetricAddress,/BumpMetric
-		GetCurrentStatusAddress,/GetCurrentStatus
-		MetricsAddress,/Metrics
-		MillicoresQuery,millicores
-		MegabytesQuery,megabytes
-		MetricNameQuery,metric
-		DeltaQuery,delta
-		DurationSecQuery,durationSec
-		RequestSizeInMillicoresQuery,requestSizeMillicores
-		RequestSizeInMegabytesQuery,requestSizeMegabytes
-		RequestSizeCustomMetricQuery,requestSizeMetrics
-		BadRequest,Bad request. Not a POST request
-		UnknownFunction,unknown function
-		IncorrectFunctionArgument,incorrect function argument
-		NotGivenFunctionArgument,not given function argument
-		FrameworkName,horizontal-pod-autoscaling
-	*/
+
 	// convert data (strings to ints) for consumeCPU
 	durationSec, durationSecError := strconv.Atoi(durationSecString)
 	millicores, millicoresError := strconv.Atoi(millicoresString)
@@ -112,6 +97,18 @@ func (handler *ResourceConsumerHandler) handleConsumeCPU(w http.ResponseWriter, 
 	fmt.Fprintln(w, "ConsumeCPU")
 	fmt.Fprintln(w, "millicores ", millicores)
 	fmt.Fprintln(w, "durationSec ", durationSec)
+}
+
+func (handler *ResourceConsumerHandler) handleConsumeDisk(w http.ResponseWriter, query url.Values) {
+	filename := query.Get("filename")
+	gigabytesString := query.Get("gigabytes")
+	if filename == "" || gigabytesString == "" {
+		http.Error(w, "filename or gigabytes missing", http.StatusBadRequest)
+		return
+	}
+	fmt.Fprintln(w, "ConsumeDisk")
+	fmt.Fprintln(w, "gigabytes ", gigabytesString)
+	fmt.Fprintln(w, "filename ", filename)
 }
 
 func (handler *ResourceConsumerHandler) handleConsumeMem(w http.ResponseWriter, query url.Values) {

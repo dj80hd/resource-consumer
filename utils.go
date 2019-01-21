@@ -38,7 +38,7 @@ func ConsumeCPU(millicores int, durationSec int) {
 	consumeCPU.Run()
 }
 
-//ConsumeCPU starts external process consuming millcores of CPU for durationSec
+//ConsumeMem starts external process consuming millcores of CPU for durationSec
 func ConsumeMem(megabytes int, durationSec int) {
 	log.Printf("ConsumeMem megabytes: %v, durationSec: %v", megabytes, durationSec)
 	megabytesString := strconv.Itoa(megabytes) + "M"
@@ -48,6 +48,12 @@ func ConsumeMem(megabytes int, durationSec int) {
 	consumeMem.Run()
 }
 
+//ConsumeDisk creates a file of the specified size
+func ConsumeDisk(gigabytes int, filename string) {
+	log.Printf("ConsumeDisk gigabytes: %v file: %s", gigabytes, filename)
+}
+
+//GetCurrentStatus is not implemented
 func GetCurrentStatus() {
 	log.Printf("GetCurrentStatus")
 	// not implemented

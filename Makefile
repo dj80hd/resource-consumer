@@ -20,7 +20,8 @@ build: format
 	go build -o consumer resource_consumer.go resource_consumer_handler.go utils.go
 
 clean:
-	rm consume-cpu/consume-cpu
+	rm -f consume-cpu/consume-cpu
+	rm -f consumer
 
 cover:
 	goverage -covermode=set -coverprofile=cov.out `go list ./...`
