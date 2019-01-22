@@ -3,8 +3,6 @@ COMMIT_SHA=$(shell git rev-parse HEAD)
 
 default: build
 
-.PHONY: dep test race cover docker migration
-
 dep:
 	dep ensure
 
@@ -22,11 +20,6 @@ build: format
 clean:
 	rm -f consume-cpu/consume-cpu
 	rm -f consumer
-
-cover:
-	goverage -covermode=set -coverprofile=cov.out `go list ./...`
-	gocov convert cov.out | gocov report
-	go tool cover -html=cov.out
 
 docker: dep build
 	docker build --rm --build-arg GIT_COMMIT="$(COMMIT_SHA)" --tag "$(IMAGE_NAME):latest" .
