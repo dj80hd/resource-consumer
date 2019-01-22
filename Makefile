@@ -1,4 +1,4 @@
-IMAGE_NAME=docker-automation.artifactory.uptake.com/automation/resource-consumer
+IMAGE_NAME=dj80hd/resource-consumer
 COMMIT_SHA=$(shell git rev-parse HEAD)
 
 default: build

@@ -18,6 +18,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -43,7 +44,7 @@ func (handler *ResourceConsumerHandler) ServeHTTP(w http.ResponseWriter, req *ht
 		return
 	}
 	if req.Method != "POST" {
-		http.Error(w, "Bad", http.StatusBadRequest)
+		http.Error(w, "HTTP Post required", http.StatusBadRequest)
 		return
 	}
 	// parsing POST request.data and URL data
@@ -89,14 +90,14 @@ func (handler *ResourceConsumerHandler) handleConsumeCPU(w http.ResponseWriter, 
 	durationSec, durationSecError := strconv.Atoi(durationSecString)
 	millicores, millicoresError := strconv.Atoi(millicoresString)
 	if durationSecError != nil || millicoresError != nil {
-		http.Error(w, "incorrect", http.StatusBadRequest)
+		http.Error(w, "non-integer millicores or durationSec", http.StatusBadRequest)
 		return
 	}
 
 	go ConsumeCPU(millicores, durationSec)
-	fmt.Fprintln(w, "ConsumeCPU")
-	fmt.Fprintln(w, "millicores ", millicores)
-	fmt.Fprintln(w, "durationSec ", durationSec)
+	logit(w, "ConsumeCPU")
+	logit(w, "millicores ", millicores)
+	logit(w, "durationSec ", durationSec)
 }
 
 func (handler *ResourceConsumerHandler) handleConsumeDisk(w http.ResponseWriter, query url.Values) {
@@ -106,10 +107,17 @@ func (handler *ResourceConsumerHandler) handleConsumeDisk(w http.ResponseWriter,
 		http.Error(w, "filename or gigabytes missing", http.StatusBadRequest)
 		return
 	}
-	//dd if=/dev/zero of=output.dat bs=1073741824 count=1
-	fmt.Fprintln(w, "ConsumeDisk")
-	fmt.Fprintln(w, "gigabytes ", gigabytesString)
-	fmt.Fprintln(w, "filename ", filename)
+
+	gigabytes, gigabytesError := strconv.Atoi(gigabytesString)
+	if gigabytesError != nil {
+		http.Error(w, "incorrect gigabytes", http.StatusBadRequest)
+		return
+	}
+
+	go ConsumeDisk(gigabytes, filename)
+	logit(w, "ConsumeDisk")
+	logit(w, "gigabytes ", gigabytesString)
+	logit(w, "filename ", filename)
 }
 
 func (handler *ResourceConsumerHandler) handleConsumeMem(w http.ResponseWriter, query url.Values) {
@@ -117,7 +125,7 @@ func (handler *ResourceConsumerHandler) handleConsumeMem(w http.ResponseWriter, 
 	durationSecString := query.Get("durationSec")
 	megabytesString := query.Get("megabytes")
 	if durationSecString == "" || megabytesString == "" {
-		http.Error(w, "durantionSecString or megabytesString missing", http.StatusBadRequest)
+		http.Error(w, "durantionSec or megabytes missing", http.StatusBadRequest)
 		return
 	}
 
@@ -125,29 +133,29 @@ func (handler *ResourceConsumerHandler) handleConsumeMem(w http.ResponseWriter, 
 	durationSec, durationSecError := strconv.Atoi(durationSecString)
 	megabytes, megabytesError := strconv.Atoi(megabytesString)
 	if durationSecError != nil || megabytesError != nil {
-		http.Error(w, "durantionSecError or megabytesError incorrect", http.StatusBadRequest)
+		http.Error(w, "durantionSec and megabytes must be integers", http.StatusBadRequest)
 		return
 	}
 
 	go ConsumeMem(megabytes, durationSec)
-	fmt.Fprintln(w, "ConsumeMem")
-	fmt.Fprintln(w, "megabytes ", megabytes)
-	fmt.Fprintln(w, "durationSec ", durationSec)
+	logit(w, "ConsumeMem")
+	logit(w, "megabytes ", megabytes)
+	logit(w, "durationSec ", durationSec)
 }
 
 func (handler *ResourceConsumerHandler) handleGetCurrentStatus(w http.ResponseWriter) {
 	GetCurrentStatus()
-	fmt.Fprintln(w, "Warning: not implemented!")
-	fmt.Fprint(w, "GetCurrentStatus")
+	logit(w, "Warning: not implemented!")
+	logit(w, "GetCurrentStatus")
 }
 
 func (handler *ResourceConsumerHandler) handleMetrics(w http.ResponseWriter) {
 	handler.metricsLock.Lock()
 	defer handler.metricsLock.Unlock()
 	for k, v := range handler.metrics {
-		fmt.Fprintf(w, "# HELP %s info message.\n", k)
-		fmt.Fprintf(w, "# TYPE %s gauge\n", k)
-		fmt.Fprintf(w, "%s %f\n", k, v)
+		logit(w, "# HELP %s info message.\n", k)
+		logit(w, "# TYPE %s gauge\n", k)
+		logit(w, "%s %f\n", k, v)
 	}
 }
 
@@ -187,9 +195,17 @@ func (handler *ResourceConsumerHandler) handleBumpMetric(w http.ResponseWriter, 
 	}
 
 	go handler.bumpMetric(metric, delta, time.Duration(durationSec)*time.Second)
-	fmt.Fprintln(w, "BumpMetric")
+	logit(w, "BumpMetric")
 
-	fmt.Fprintln(w, "metric ", metric)
-	fmt.Fprintln(w, "delta ", delta)
-	fmt.Fprintln(w, "durationSec ", durationSec)
+	logit(w, "metric ", metric)
+	logit(w, "delta ", delta)
+	logit(w, "durationSec ", durationSec)
+}
+
+func logit(w io.Writer, a ...interface{}) (n int) {
+	n, err := fmt.Fprintln(w, a)
+	if err != nil {
+		return 0
+	}
+	return n
 }

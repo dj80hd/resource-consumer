@@ -1,27 +1,28 @@
 # Resource Consumer
 
-A version of [the kubernetes resource-consumer]() that includes disk usage.
+A simplified version of [the kubernetes resource-consumer](https://github.com/kubernetes/kubernetes/tree/master/test/images/resource-consumer) that includes disk usage.
 
 ## Overview
-Resource Consumer is a tool which allows to generate cpu/memory utilization in a container.
-The reason why it was created is testing kubernetes autoscaling.
-Resource Consumer can help with autoscaling tests for:
+Resource Consumer is a tool which allows to generate cpu/memory/disk utilization in a container.
+Resource Consumer can help with testing:
 - cluster size autoscaling,
 - horizontal autoscaling of pod - changing the size of replication controller,
 - vertical autoscaling of pod - changing its resource limits.
+- eviction scenarios
 
 ## Usage
 Resource Consumer starts an HTTP server and handle sent requests.
 It listens on port given as a flag (default 8080).
 Action of consuming resources is send to the container by a POST http request.
 Each http request creates new process.
-Http request handler is in file resource_consumer_handler.go 
+Http request handler is in file resource_consumer_handler.go
 
 The container consumes specified amount of resources:
 
 - CPU in millicores,
 - Memory in megabytes,
 - Fake custom metrics.
+- Disk files in gigabytes
 
 ### Consume CPU http request
 - suffix "ConsumeCPU",
@@ -48,38 +49,36 @@ Request leading to consuming more memory then container limit will be ignored.
 Bumps metric with given name by delta for durationSec seconds.
 Custom metrics in Prometheus format are exposed on "/metrics" endpoint.
 
-### CURL example
-```console
-$ kubectl run resource-consumer --image=k8s.gcr.io/resource_consumer:beta --expose --service-overrides='{ "spec": { "type": "LoadBalancer" } }' --port 8080
-$ kubectl get services resource-consumer
+### Consume disk request
+- suffix "ConsumeDisk"
+- parameters "gigabytes" and "filename"
+
+Creates a filename whose size and name is specified by input.
+Requests to create files in non-existent directories will be ignored.
+
+### Running resource consumer
+```bash
+docker run -d -p 8080:8080 dj80hd/resource-consumer
 ```
 
-There are two IPs.  The first one is internal, while the second one is the external load-balanced IP.  Both serve port 8080. (Use second one)
+### CURL examples
 
-```console
-$ curl --data "millicores=300&durationSec=600" http://<EXTERNAL-IP>:8080/ConsumeCPU
+Take up 1/2 a CPU for 10 minutes:
+```bash
+curl --data "millicores=500&durationSec=600" http://localhost:8080/ConsumeCPU
 ```
 
-300 millicores will be consumed for 600 seconds.
+Take up 1G Memory for 5 minutes:
+```bash
+curl --data "megabytes=1024&durationSec=300" http://localhost:8080/ConsumeMem
+```
 
-## Image
+Take up 8G of disk:
+```bash
+curl --data "gigabytes=8&filename=/tmp/foo.txt" http://localhost:8080/ConsumeDisk
+```
 
-Docker image of Resource Consumer can be found in Google Container Registry as k8s.gcr.io/resource_consumer:beta
-
-## Use cases
-
-### Cluster size autoscaling
-1. Consume more resources on each node that is specified for autoscaler
-2. Observe that cluster size increased
-
-### Horizontal autoscaling of pod
-1. Create consuming RC and start consuming appropriate amount of resources
-2. Observe that RC has been resized
-3. Observe that usage on each replica decreased
-
-### Vertical autoscaling of pod
-1. Create consuming pod and start consuming appropriate amount of resources
-2. Observed that limits has been increased
-
-
-[![Analytics](https://kubernetes-site.appspot.com/UA-36037335-10/GitHub/test/images/resource-consumer/README.md?pixel)]()
+Free up same 8G of disk:
+```bash
+curl --data "gigabytes=0&filename=/tmp/foo.txt" http://localhost:8080/ConsumeDisk
+```
