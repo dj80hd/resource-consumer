@@ -56,12 +56,7 @@ Creates a filename whose size and name is specified by input.
 
 Requests to create files in non-existent directories will be ignored.
 
-### Running resource consumer
-```bash
-docker run -d -p 8080:8080 dj80hd/resource-consumer
-```
-
-### CURL examples
+## CURL examples
 
 Take up 1/2 a CPU for 10 minutes:
 ```bash
@@ -82,3 +77,17 @@ Free up same 8G of disk:
 ```bash
 curl --data "gigabytes=0&filename=/tmp/foo.txt" http://localhost:8080/ConsumeDisk
 ```
+
+## Testing
+
+Run resource consumer locallly:
+```bash
+docker run --name resource-consumer -d -p 8080:8080 dj80hd/resource-consumer
+```
+
+Measure cpu, mem, and disk:
+```bash
+ echo "CPU: $(docker stats --no-stream | grep resource-consumer | awk '{print $3}'), MEM:$(docker stats --no-stream | grep resource-consumer | awk '{print $4,$5,$6}' | tr -d ' '), DISK: $(docker ps -s | grep resource-consumer | awk '{print $(NF-2),$(NF-1),$NF}')"
+```
+
+
