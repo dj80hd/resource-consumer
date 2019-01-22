@@ -30,8 +30,6 @@ The container consumes specified amount of resources:
 
 Consumes specified amount of millicores for durationSec seconds.
 Consume CPU uses "./consume-cpu/consume-cpu" binary (file consume-cpu/consume_cpu.go).
-When CPU consumption is too low this binary uses cpu by calculating math.sqrt(0) 10^7 times
-and if consumption is too high binary sleeps for 10 millisecond.
 One replica of Resource Consumer cannot consume more that 1 cpu.
 
 ### Consume Memory http request
@@ -39,7 +37,7 @@ One replica of Resource Consumer cannot consume more that 1 cpu.
 - parameters "megabytes" and "durationSec"
 
 Consumes specified amount of megabytes for durationSec seconds.
-Consume Memory uses stress tool (stress -m 1 --vm-bytes megabytes --vm-hang 0 -t durationSec).
+
 Request leading to consuming more memory then container limit will be ignored.
 
 ### Bump value of a fake custom metric
@@ -47,6 +45,7 @@ Request leading to consuming more memory then container limit will be ignored.
 - parameters "metric", "delta" and "durationSec"
 
 Bumps metric with given name by delta for durationSec seconds.
+
 Custom metrics in Prometheus format are exposed on "/metrics" endpoint.
 
 ### Consume disk request
@@ -54,6 +53,7 @@ Custom metrics in Prometheus format are exposed on "/metrics" endpoint.
 - parameters "gigabytes" and "filename"
 
 Creates a filename whose size and name is specified by input.
+
 Requests to create files in non-existent directories will be ignored.
 
 ### Running resource consumer
