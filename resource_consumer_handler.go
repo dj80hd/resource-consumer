@@ -95,9 +95,9 @@ func (handler *ResourceConsumerHandler) handleConsumeCPU(w http.ResponseWriter, 
 	}
 
 	go ConsumeCPU(millicores, durationSec)
-	logit(w, "ConsumeCPU")
-	logit(w, "millicores ", millicores)
-	logit(w, "durationSec ", durationSec)
+	write(w, "ConsumeCPU")
+	write(w, "millicores ", millicores)
+	write(w, "durationSec ", durationSec)
 }
 
 func (handler *ResourceConsumerHandler) handleConsumeDisk(w http.ResponseWriter, query url.Values) {
@@ -115,9 +115,9 @@ func (handler *ResourceConsumerHandler) handleConsumeDisk(w http.ResponseWriter,
 	}
 
 	go ConsumeDisk(gigabytes, filename)
-	logit(w, "ConsumeDisk")
-	logit(w, "gigabytes ", gigabytesString)
-	logit(w, "filename ", filename)
+	write(w, "ConsumeDisk")
+	write(w, "gigabytes ", gigabytesString)
+	write(w, "filename ", filename)
 }
 
 func (handler *ResourceConsumerHandler) handleConsumeMem(w http.ResponseWriter, query url.Values) {
@@ -138,24 +138,24 @@ func (handler *ResourceConsumerHandler) handleConsumeMem(w http.ResponseWriter, 
 	}
 
 	go ConsumeMem(megabytes, durationSec)
-	logit(w, "ConsumeMem")
-	logit(w, "megabytes ", megabytes)
-	logit(w, "durationSec ", durationSec)
+	write(w, "ConsumeMem")
+	write(w, "megabytes ", megabytes)
+	write(w, "durationSec ", durationSec)
 }
 
 func (handler *ResourceConsumerHandler) handleGetCurrentStatus(w http.ResponseWriter) {
 	GetCurrentStatus()
-	logit(w, "Warning: not implemented!")
-	logit(w, "GetCurrentStatus")
+	write(w, "Warning: not implemented!")
+	write(w, "GetCurrentStatus")
 }
 
 func (handler *ResourceConsumerHandler) handleMetrics(w http.ResponseWriter) {
 	handler.metricsLock.Lock()
 	defer handler.metricsLock.Unlock()
 	for k, v := range handler.metrics {
-		logit(w, "# HELP %s info message.\n", k)
-		logit(w, "# TYPE %s gauge\n", k)
-		logit(w, "%s %f\n", k, v)
+		write(w, "# HELP %s info message.\n", k)
+		write(w, "# TYPE %s gauge\n", k)
+		write(w, "%s %f\n", k, v)
 	}
 }
 
@@ -195,14 +195,14 @@ func (handler *ResourceConsumerHandler) handleBumpMetric(w http.ResponseWriter, 
 	}
 
 	go handler.bumpMetric(metric, delta, time.Duration(durationSec)*time.Second)
-	logit(w, "BumpMetric")
+	write(w, "BumpMetric")
 
-	logit(w, "metric ", metric)
-	logit(w, "delta ", delta)
-	logit(w, "durationSec ", durationSec)
+	write(w, "metric ", metric)
+	write(w, "delta ", delta)
+	write(w, "durationSec ", durationSec)
 }
 
-func logit(w io.Writer, a ...interface{}) (n int) {
+func write(w io.Writer, a ...interface{}) (n int) {
 	n, err := fmt.Fprintln(w, a)
 	if err != nil {
 		return 0
