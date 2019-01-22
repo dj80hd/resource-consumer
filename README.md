@@ -1,6 +1,6 @@
 # Resource Consumer
 
-A simplified version of [the kubernetes resource-consumer](https://github.com/kubernetes/kubernetes/tree/master/test/images/resource-consumer) that includes disk usage.
+A simplified version of [the kubernetes resource-consumer](https://github.com/kubernetes/kubernetes/tree/master/test/images/resource-consumer) that includes disk usage and is decoupled from the kubernetes build system.
 
 ## Overview
 Resource Consumer is a tool which allows to generate cpu/memory/disk utilization in a container.
