@@ -78,6 +78,16 @@ Free up same 8G of disk:
 curl --data "gigabytes=0&filename=/tmp/foo.txt" http://localhost:8080/ConsumeDisk
 ```
 
+Set metric `foo` to 1.14 for 5 minutes:
+```bash
+curl --data "metric=foo&delta=1.14&durationSec=300" http://localhost:8080/BumpMetric
+```
+
+Get metrics:
+```bash
+curl http://localhost:8080/Metrics
+```
+
 ## Testing
 
 Run resource consumer locallly:
