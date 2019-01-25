@@ -181,8 +181,7 @@ func (handler *ResourceConsumerHandler) handleBumpMetric(w http.ResponseWriter, 
 	deltaString := query.Get("delta")
 	durationSecString := query.Get("durationSec")
 	if durationSecString == "" || metric == "" || deltaString == "" {
-		http.Error(w, "durantionSecString, metric, or deltaString missing", http.StatusBadRequest)
-
+		http.Error(w, "durantionSec, metric, or delta missing", http.StatusBadRequest)
 		return
 	}
 
@@ -190,7 +189,7 @@ func (handler *ResourceConsumerHandler) handleBumpMetric(w http.ResponseWriter, 
 	durationSec, durationSecError := strconv.Atoi(durationSecString)
 	delta, deltaError := strconv.ParseFloat(deltaString, 64)
 	if durationSecError != nil || deltaError != nil {
-		http.Error(w, "durantionSec or deltaString incorrect", http.StatusBadRequest)
+		http.Error(w, "durantionSec or delta incorrect", http.StatusBadRequest)
 		return
 	}
 
