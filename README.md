@@ -70,12 +70,12 @@ curl --data "megabytes=1024&durationSec=300" http://localhost:8080/ConsumeMem
 
 Take up 8G of disk:
 ```bash
-curl --data "gigabytes=8&filename=/tmp/foo.txt" http://localhost:8080/ConsumeDisk
+curl --data "gigabytes=8&filename=/var/log/foo.log" http://localhost:8080/ConsumeDisk
 ```
 
 Free up same 8G of disk:
 ```bash
-curl --data "gigabytes=0&filename=/tmp/foo.txt" http://localhost:8080/ConsumeDisk
+curl --data "gigabytes=0&filename=/var/log/foo.log" http://localhost:8080/ConsumeDisk
 ```
 
 Set metric `foo` to 1.14 for 5 minutes:
