@@ -18,7 +18,6 @@ package main
 
 import (
 	"fmt"
-	"io"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -64,11 +63,6 @@ func (handler *ResourceConsumerHandler) ServeHTTP(w http.ResponseWriter, req *ht
 		handler.handleConsumeDisk(w, req.Form)
 		return
 	}
-	// handle getCurrentStatus
-	if req.URL.Path == "/GetCurrentStatus" {
-		handler.handleGetCurrentStatus(w)
-		return
-	}
 	// handle bumpMetric
 	if req.URL.Path == "/BumpMetric" {
 		handler.handleBumpMetric(w, req.Form)
@@ -95,9 +89,10 @@ func (handler *ResourceConsumerHandler) handleConsumeCPU(w http.ResponseWriter, 
 	}
 
 	go ConsumeCPU(millicores, durationSec)
-	write(w, "ConsumeCPU")
-	write(w, "millicores ", millicores)
-	write(w, "durationSec ", durationSec)
+	_, err := fmt.Fprintf(w, "ConsumeCPU\nmillicores %d\ndurationSec %d\n", millicores, durationSec)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
 }
 
 func (handler *ResourceConsumerHandler) handleConsumeDisk(w http.ResponseWriter, query url.Values) {
@@ -115,9 +110,10 @@ func (handler *ResourceConsumerHandler) handleConsumeDisk(w http.ResponseWriter,
 	}
 
 	go ConsumeDisk(gigabytes, filename)
-	write(w, "ConsumeDisk")
-	write(w, "gigabytes ", gigabytesString)
-	write(w, "filename ", filename)
+	_, err := fmt.Fprintf(w, "ConsumeDisk\ngigabytes %d\nfilename %s\n", gigabytes, filename)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
 }
 
 func (handler *ResourceConsumerHandler) handleConsumeMem(w http.ResponseWriter, query url.Values) {
@@ -138,24 +134,20 @@ func (handler *ResourceConsumerHandler) handleConsumeMem(w http.ResponseWriter, 
 	}
 
 	go ConsumeMem(megabytes, durationSec)
-	write(w, "ConsumeMem")
-	write(w, "megabytes ", megabytes)
-	write(w, "durationSec ", durationSec)
-}
-
-func (handler *ResourceConsumerHandler) handleGetCurrentStatus(w http.ResponseWriter) {
-	GetCurrentStatus()
-	write(w, "Warning: not implemented!")
-	write(w, "GetCurrentStatus")
+	_, err := fmt.Fprintf(w, "ConsumeMem\nmegabytes %d\ndurationSec %d\n", megabytes, durationSec)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
 }
 
 func (handler *ResourceConsumerHandler) handleMetrics(w http.ResponseWriter) {
 	handler.metricsLock.Lock()
 	defer handler.metricsLock.Unlock()
 	for k, v := range handler.metrics {
-		write(w, "# HELP %s info message.\n", k)
-		write(w, "# TYPE %s gauge\n", k)
-		write(w, "%s %f\n", k, v)
+		_, err := fmt.Fprintf(w, "# HELP %s info msg\n# TYPE %s guage\n%s %f\n", k, k, k, v)
+		if err != nil {
+			fmt.Println(err.Error())
+		}
 	}
 }
 
@@ -194,17 +186,8 @@ func (handler *ResourceConsumerHandler) handleBumpMetric(w http.ResponseWriter, 
 	}
 
 	go handler.bumpMetric(metric, delta, time.Duration(durationSec)*time.Second)
-	write(w, "BumpMetric")
-
-	write(w, "metric ", metric)
-	write(w, "delta ", delta)
-	write(w, "durationSec ", durationSec)
-}
-
-func write(w io.Writer, a ...interface{}) (n int) {
-	n, err := fmt.Fprintln(w, a)
+	_, err := fmt.Fprintf(w, "BumpMetric\nmetric %s\ndelta %s\ndurationSec %d\n", metric, deltaString, durationSec)
 	if err != nil {
-		return 0
+		fmt.Println(err.Error())
 	}
-	return n
 }
