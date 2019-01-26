@@ -97,7 +97,7 @@ docker run --name resource-consumer -d -p 8080:8080 dj80hd/resource-consumer
 
 Measure cpu, mem, and disk:
 ```bash
- echo "CPU: $(docker stats --no-stream | grep resource-consumer | awk '{print $3}'), MEM:$(docker stats --no-stream | grep resource-consumer | awk '{print $4,$5,$6}' | tr -d ' '), DISK: $(docker ps -s | grep resource-consumer | awk '{print $(NF-2),$(NF-1),$NF}')"
+ echo "CPU: $(docker stats --no-stream | grep resource-consumer | awk '{print $3}')"; echo "MEM: $(docker stats --no-stream | grep resource-consumer | awk '{print $4,$5,$6}' | tr -d ' ')"; echo "DSK: $(docker ps -s | grep resource-consumer | awk '{print $(NF-2),$(NF-1),$NF}')"
 ```
 
 
