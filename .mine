@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-#v21
 
 _report_usage() {
   echo "CPU: $(docker stats --no-stream | grep resource-consumer | awk '{print $3}')"
