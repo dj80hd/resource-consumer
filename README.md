@@ -60,32 +60,32 @@ Requests to create files in non-existent directories will be ignored.
 
 Take up 1/2 a CPU for 10 minutes:
 ```bash
-curl --data "millicores=500&durationSec=600" http://localhost:8080/ConsumeCPU
+curl --data "millicores=500&durationSec=600" http://localhost:8080/consume-cpu
 ```
 
 Take up 1G Memory for 5 minutes:
 ```bash
-curl --data "megabytes=1024&durationSec=300" http://localhost:8080/ConsumeMem
+curl --data "megabytes=1024&durationSec=300" http://localhost:8080/consume-mem
 ```
 
 Take up 8G of disk:
 ```bash
-curl --data "gigabytes=8&filename=/var/log/foo.log" http://localhost:8080/ConsumeDisk
+curl --data "gigabytes=8&filename=/var/log/foo.log" http://localhost:8080/consume-disk
 ```
 
 Free up same 8G of disk:
 ```bash
-curl --data "gigabytes=0&filename=/var/log/foo.log" http://localhost:8080/ConsumeDisk
+curl --data "gigabytes=0&filename=/var/log/foo.log" http://localhost:8080/consume-disk
 ```
 
 Set metric `foo` to 1.14 for 5 minutes:
 ```bash
-curl --data "metric=foo&delta=1.14&durationSec=300" http://localhost:8080/BumpMetric
+curl --data "metric=foo&delta=1.14&durationSec=300" http://localhost:8080/bump-metric
 ```
 
 Get metrics:
 ```bash
-curl http://localhost:8080/Metrics
+curl http://localhost:8080/metrics
 ```
 
 ## Testing

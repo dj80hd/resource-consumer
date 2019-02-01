@@ -38,7 +38,7 @@ func NewResourceConsumerHandler() *ResourceConsumerHandler {
 
 func (handler *ResourceConsumerHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	// handle exposing metrics in Prometheus format (both GET & POST)
-	if req.URL.Path == "/Metrics" {
+	if req.URL.Path == "/metrics" {
 		handler.handleMetrics(w)
 		return
 	}
@@ -51,20 +51,20 @@ func (handler *ResourceConsumerHandler) ServeHTTP(w http.ResponseWriter, req *ht
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	if req.URL.Path == "/ConsumeCPU" {
+	if req.URL.Path == "/consume-cpu" {
 		handler.handleConsumeCPU(w, req.Form)
 		return
 	}
-	if req.URL.Path == "/ConsumeMem" {
+	if req.URL.Path == "/consume-mem" {
 		handler.handleConsumeMem(w, req.Form)
 		return
 	}
-	if req.URL.Path == "/ConsumeDisk" {
+	if req.URL.Path == "/consume-disk" {
 		handler.handleConsumeDisk(w, req.Form)
 		return
 	}
 	// handle bumpMetric
-	if req.URL.Path == "/BumpMetric" {
+	if req.URL.Path == "/bump-metric" {
 		handler.handleBumpMetric(w, req.Form)
 		return
 	}
@@ -89,7 +89,7 @@ func (handler *ResourceConsumerHandler) handleConsumeCPU(w http.ResponseWriter, 
 	}
 
 	go ConsumeCPU(millicores, durationSec)
-	_, err := fmt.Fprintf(w, "ConsumeCPU\nmillicores %d\ndurationSec %d\n", millicores, durationSec)
+	_, err := fmt.Fprintf(w, "/consume-cpu\nmillicores %d\ndurationSec %d\n", millicores, durationSec)
 	if err != nil {
 		fmt.Println(err.Error())
 	}
@@ -110,7 +110,7 @@ func (handler *ResourceConsumerHandler) handleConsumeDisk(w http.ResponseWriter,
 	}
 
 	go ConsumeDisk(gigabytes, filename)
-	_, err := fmt.Fprintf(w, "ConsumeDisk\ngigabytes %d\nfilename %s\n", gigabytes, filename)
+	_, err := fmt.Fprintf(w, "/consume-disk\ngigabytes %d\nfilename %s\n", gigabytes, filename)
 	if err != nil {
 		fmt.Println(err.Error())
 	}
@@ -134,7 +134,7 @@ func (handler *ResourceConsumerHandler) handleConsumeMem(w http.ResponseWriter, 
 	}
 
 	go ConsumeMem(megabytes, durationSec)
-	_, err := fmt.Fprintf(w, "ConsumeMem\nmegabytes %d\ndurationSec %d\n", megabytes, durationSec)
+	_, err := fmt.Fprintf(w, "/consume-mem\nmegabytes %d\ndurationSec %d\n", megabytes, durationSec)
 	if err != nil {
 		fmt.Println(err.Error())
 	}
@@ -186,7 +186,7 @@ func (handler *ResourceConsumerHandler) handleBumpMetric(w http.ResponseWriter, 
 	}
 
 	go handler.bumpMetric(metric, delta, time.Duration(durationSec)*time.Second)
-	_, err := fmt.Fprintf(w, "BumpMetric\nmetric %s\ndelta %s\ndurationSec %d\n", metric, deltaString, durationSec)
+	_, err := fmt.Fprintf(w, "/bump-metric\nmetric %s\ndelta %s\ndurationSec %d\n", metric, deltaString, durationSec)
 	if err != nil {
 		fmt.Println(err.Error())
 	}
