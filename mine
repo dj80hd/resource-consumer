@@ -1,5 +1,4 @@
-#! /usr/bin/env bash
-set -euo pipefail
+#!/usr/bin/env bash
 
 _report_usage() {
   echo "CPU: $(docker stats --no-stream | grep resource-consumer | awk '{print $3}')"
@@ -40,9 +39,22 @@ _test() {
   _stop_container
   echo "Ok."
 }
-
+_host() {
+  echo 'resource-consumer.apps.infralab.mt2.uptake.run'
+}
+_millicores() {
+  local host=${2:-$(_host)}
+  local millicores=${1:-250}
+  curl --data "millicores=${millicores}&durationSec=6000" ${host}/consume-cpu
+}
+_megabytes() {
+  local host=${2:-$(_host)}
+  local megabytes=${1:-250}
+  curl --data "megabytes=${megabytes}&durationSec=6000" ${host}/consume-mem
+}
 _load() {
-  local host=${1:-localhost:8080}
+  local host="${1:-localhost:8080}"
+  #local host=${1:-$(_host)}
   curl --data "millicores=250&durationSec=600" ${host}/consume-cpu
   curl --data "megabytes=500&durationSec=300" ${host}/consume-mem
   curl --data "gigabytes=4&filename=/var/log/rc-${RANDOM}.log" ${host}/consume-disk
@@ -50,7 +62,19 @@ _load() {
 }
 
 _deploy() {
-  cat <<EOF | kubectl apply -f -
+  local ns=${1:-default}
+  local replicas=${2:-1}
+  _yaml ${replicas} | kubectl apply -n $ns -f -
+}
+
+_delete() {
+  local ns=${1:-default}
+  _yaml | kubectl delete -n $ns -f -
+}
+
+_yaml() {
+  local replicas=${1:-1}
+  cat <<EOF
 ---
 apiVersion: v1
 kind: Service
@@ -74,7 +98,7 @@ metadata:
     app: resource-consumer
   name: resource-consumer
 spec:
-  replicas: 1
+  replicas: ${replicas}
   selector:
     matchLabels:
       app: resource-consumer
