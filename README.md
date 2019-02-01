@@ -3,103 +3,63 @@
 A simplified version of [the kubernetes resource-consumer](https://github.com/kubernetes/kubernetes/tree/master/test/images/resource-consumer) that includes disk usage and is decoupled from the kubernetes build system.
 
 ## Overview
-Resource Consumer is a tool which allows to generate cpu/memory/disk utilization in a container.
-Resource Consumer can help with testing:
-- cluster size autoscaling,
-- horizontal autoscaling of pod - changing the size of replication controller,
-- vertical autoscaling of pod - changing its resource limits.
-- eviction scenarios
-
-## Usage
-Resource Consumer starts an HTTP server and handle sent requests.
-It listens on port given as a flag (default 8080).
-Action of consuming resources is send to the container by a POST http request.
-Each http request creates new process.
-Http request handler is in file resource_consumer_handler.go
-
-The container consumes specified amount of resources:
-
+Resouce Consumer allows one to generate the following type of load inside a container:
 - CPU in millicores
 - Memory in megabytes
 - Fake custom metrics
 - Disk files in gigabytes
 
-### Consume CPU http request
-- suffix "ConsumeCPU"
-- parameters "millicores" and "durationSec"
+Resource Consumer can help with testing:
+- cluster size autoscaling,
+- horizontal autoscaling of pod - changing the size of replication controller,
+- vertical autoscaling of pod - changing its resource limits.
+- eviction scenarios
+- reserved resources
 
-Consumes specified amount of millicores for durationSec seconds.
-Consume CPU uses "./consume-cpu/consume-cpu" binary (file consume-cpu/consume_cpu.go).
-One replica of Resource Consumer cannot consume more that 1 cpu.
+## Usage
 
-### Consume Memory http request
-- suffix "ConsumeMem"
-- parameters "megabytes" and "durationSec"
-
-Consumes specified amount of megabytes for durationSec seconds.
-
-Request leading to consuming more memory then container limit will be ignored.
-
-### Bump value of a fake custom metric
-- suffix "BumpMetric"
-- parameters "metric", "delta" and "durationSec"
-
-Bumps metric with given name by delta for durationSec seconds.
-
-Custom metrics in Prometheus format are exposed on "/metrics" endpoint.
-
-### Consume disk request
-- suffix "ConsumeDisk"
-- parameters "gigabytes" and "filename"
-
-Creates a filename whose size and name is specified by input.
-
-Requests to create files in non-existent directories will be ignored.
-
-## CURL examples
-
-Take up 1/2 a CPU for 10 minutes:
-```bash
-curl --data "millicores=500&durationSec=600" http://localhost:8080/consume-cpu
-```
-
-Take up 1G Memory for 5 minutes:
-```bash
-curl --data "megabytes=1024&durationSec=300" http://localhost:8080/consume-mem
-```
-
-Take up 8G of disk:
-```bash
-curl --data "gigabytes=8&filename=/var/log/foo.log" http://localhost:8080/consume-disk
-```
-
-Free up same 8G of disk:
-```bash
-curl --data "gigabytes=0&filename=/var/log/foo.log" http://localhost:8080/consume-disk
-```
-
-Set metric `foo` to 1.14 for 5 minutes:
-```bash
-curl --data "metric=foo&delta=1.14&durationSec=300" http://localhost:8080/bump-metric
-```
-
-Get metrics:
-```bash
-curl http://localhost:8080/metrics
-```
-
-## Testing
-
-Run resource consumer locallly:
+Run Resource Consumer locally:
 ```bash
 docker run --name resource-consumer -d -p 8080:8080 dj80hd/resource-consumer
 ```
 
-Measure cpu, mem, and disk:
+## CURL examples
+
+* Take up 1/8 CPU for 10 minutes:
+```bash
+curl --data "millicores=125&durationSec=600" http://localhost:8080/consume-cpu
+```
+Note: One replica of Resource Consumer cannot consume more that 1 cpu.
+
+* Take up 200M Memory for 5 minutes:
+```bash
+curl --data "megabytes=200&durationSec=300" http://localhost:8080/consume-mem
+```
+Note: Request to consume more memory then container limit will be ignored.
+
+* Take up 1G of disk:
+```bash
+curl --data "gigabytes=1&filename=/var/log/foo.log" http://localhost:8080/consume-disk
+```
+Note: Requests to create files in non-existent directories will be ignored.
+
+* Free up same 1G of disk:
+```bash
+curl --data "gigabytes=0&filename=/var/log/foo.log" http://localhost:8080/consume-disk
+```
+Note: Size of 0 gigabytes deletes file
+
+* Set metric `foo` to 1.14 for 5 minutes:
+```bash
+curl --data "metric=foo&delta=1.14&durationSec=300" http://localhost:8080/bump-metric
+```
+Note: Custom metrics in Prometheus format are exposed on "/metrics" endpoint.
+
+## Test
+
+Observe local cpu, mem, and disk:
 ```bash
 echo "CPU: $(docker stats --no-stream | grep resource-consumer | awk '{print $3}')" && \
 echo "MEM: $(docker stats --no-stream | grep resource-consumer | awk '{print $4,$5,$6}' | tr -d ' ')" && \
 echo "DSK: $(docker ps -s | grep resource-consumer | awk '{print $(NF-2),$(NF-1),$NF}')"
 ```
-
-
