@@ -21,6 +21,7 @@ import (
 	"log"
 	"os/exec"
 	"strconv"
+	"time"
 )
 
 //ConsumeCPU starts external process consuming millcores of CPU for durationSec
@@ -49,25 +50,32 @@ func ConsumeMem(megabytes int, durationSec int) {
 	}
 }
 
-//ConsumeDisk creates a file of the specified size
-func ConsumeDisk(gigabytes int, filename string) {
+//ConsumeDisk creates file gigabtyes in size, deletes it after durationSec
+func ConsumeDisk(gigabytes int, durationSec int, filename string) {
 	var err error
-	log.Printf("/consume-disk gigabytes: %v file: %s", gigabytes, filename)
-	arg1 := fmt.Sprintf("of=%s", filename)
-	arg2 := fmt.Sprintf("count=%d", gigabytes)
-	if gigabytes > 0 {
-		consumeDisk := exec.Command("dd", "if=/dev/zero", "bs=1073741824", arg1, arg2)
-		err = consumeDisk.Run()
-	} else {
-		freeDisk := exec.Command("rm", filename)
-		err = freeDisk.Run()
+	log.Printf("/consume-disk gigabytes: %v filename: %s durationSec: %v",
+		gigabytes, filename, durationSec)
+
+	if gigabytes <= 0 {
+		return
 	}
+
+	consumeDisk := exec.Command(
+		"dd", "if=/dev/zero", "bs=1073741824",
+		fmt.Sprintf("of=%s", filename),
+		fmt.Sprintf("count=%d", gigabytes))
+	freeDisk := exec.Command("rm", filename)
+
+	err = consumeDisk.Run()
 	if err != nil {
 		log.Printf(err.Error())
 	}
-}
 
-//GetCurrentStatus is not implemented
-func GetCurrentStatus() {
-	log.Printf("GetCurrentStatus")
+	go func(durationSec int, cmd *exec.Cmd) {
+		time.Sleep(time.Duration(durationSec))
+		err := cmd.Run()
+		if err != nil {
+			log.Printf(err.Error())
+		}
+	}(durationSec, freeDisk)
 }

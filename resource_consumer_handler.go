@@ -96,10 +96,12 @@ func (handler *ResourceConsumerHandler) handleConsumeCPU(w http.ResponseWriter, 
 }
 
 func (handler *ResourceConsumerHandler) handleConsumeDisk(w http.ResponseWriter, query url.Values) {
-	filename := query.Get("filename")
 	gigabytesString := query.Get("gigabytes")
-	if filename == "" || gigabytesString == "" {
-		http.Error(w, "filename or gigabytes missing", http.StatusBadRequest)
+	durationSecString := query.Get("durationSec")
+	filename := query.Get("filename")
+
+	if gigabytesString == "" || durationSecString == "" || filename == "" {
+		http.Error(w, "gigabytes, durationSec, or filename missing", http.StatusBadRequest)
 		return
 	}
 
@@ -109,8 +111,14 @@ func (handler *ResourceConsumerHandler) handleConsumeDisk(w http.ResponseWriter,
 		return
 	}
 
-	go ConsumeDisk(gigabytes, filename)
-	_, err := fmt.Fprintf(w, "/consume-disk\ngigabytes %d\nfilename %s\n", gigabytes, filename)
+	durationSec, durationSecError := strconv.Atoi(durationSecString)
+	if durationSecError != nil {
+		http.Error(w, "durantionSec be integer", http.StatusBadRequest)
+		return
+	}
+
+	go ConsumeDisk(gigabytes, durationSec, filename)
+	_, err := fmt.Fprintf(w, "/consume-disk\ngigabytes %d\ndurationSec %d\nfilename %s\n", gigabytes, durationSec, filename)
 	if err != nil {
 		fmt.Println(err.Error())
 	}

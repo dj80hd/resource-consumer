@@ -37,17 +37,11 @@ curl --data "megabytes=200&durationSec=300" http://localhost:8080/consume-mem
 ```
 Note: Request to consume more memory then container limit will be ignored.
 
-* Take up 1G of disk:
+* Take up 10G of disk for 10 mintutes:
 ```bash
-curl --data "gigabytes=1&filename=/var/log/foo.log" http://localhost:8080/consume-disk
+curl --data "gigabytes=10&durationSec=600&filename=/var/log/foo.log" http://localhost:8080/consume-disk
 ```
 Note: Requests to create files in non-existent directories will be ignored.
-
-* Free up same 1G of disk:
-```bash
-curl --data "gigabytes=0&filename=/var/log/foo.log" http://localhost:8080/consume-disk
-```
-Note: Size of 0 gigabytes deletes file
 
 * Set metric `foo` to 1.14 for 5 minutes:
 ```bash
