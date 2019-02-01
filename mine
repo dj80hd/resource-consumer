@@ -16,11 +16,12 @@ _start_container() {
 }
 
 _set_load() {
-curl --data "millicores=125&durationSec=600" http://localhost:8080/consume-cpu
-curl --data "megabytes=200&durationSec=300" http://localhost:8080/consume-mem
-curl --data "gigabytes=1&filename=/var/log/foo.log" http://localhost:8080/consume-disk
-curl --data "metric=foo&delta=1.14&durationSec=300" http://localhost:8080/bump-metric
-curl http://localhost:8080/bump-metric
+  local host=${2:-$(_host)}
+  curl --data "millicores=125&durationSec=600" http://${host}/consume-cpu
+  curl --data "megabytes=200&durationSec=300" http://${host}/consume-mem
+  curl --data "gigabytes=1&filename=/var/log/foo.log" http://${host}/consume-disk
+  curl --data "metric=foo&delta=1.14&durationSec=300" http://${host})/bump-metric
+  curl http://${host}/bump-metric
 }
 
 _cleanup() {
@@ -32,7 +33,7 @@ _test() {
   _start_container
   sleep 1
   _report_usage
-  _set_load
+  _set_load 'localhost:8080'
   sleep 4
   _report_usage
   _cleanup
