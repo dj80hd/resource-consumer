@@ -28,15 +28,20 @@ _test() {
   _stop_container
   echo "Ok."
 }
+
 _host() {
-  echo 'resource-consumer.apps.infralab.mt2.uptake.run'
+  echo "${RC_HOST:-localhost:8080}"
 }
+
 _millicores() {
+  [[ -z $1 ]] && { echo "Usage: _millicores <millicores> [<url>]"; return; }
   local host=${2:-$(_host)}
   local millicores=${1:-250}
   curl --data "millicores=${millicores}&durationSec=6000" ${host}/consume-cpu
 }
+
 _megabytes() {
+  [[ -z $1 ]] && { echo "Usage: _megabytes <megabytes> [<url>]"; return; }
   local host=${2:-$(_host)}
   local megabytes=${1:-250}
   curl --data "megabytes=${megabytes}&durationSec=6000" ${host}/consume-mem
@@ -51,12 +56,13 @@ _load() {
 }
 
 _deploy() {
-  local ns=${1:-default}
+  [[ -z $1 ]] && { echo "Usage: _deploy <namespace> [<replicas>]"; return; }
   local replicas=${2:-1}
-  _yaml ${replicas} | kubectl apply -n $ns -f -
+  _yaml ${replicas} | kubectl apply -n $1 -f -
 }
 
 _delete() {
+  [[ -z $1 ]] && { echo "Usage: _delete <namespace>"; return; }
   local ns=${1:-default}
   _yaml | kubectl delete -n $ns -f -
 }
