@@ -16,27 +16,16 @@ _start_container() {
   docker run --name resource-consumer -d -p 8080:8080 dj80hd/resource-consumer
 }
 
-_set_load() {
-curl --data "millicores=125&durationSec=600" http://localhost:8080/consume-cpu
-curl --data "megabytes=200&durationSec=300" http://localhost:8080/consume-mem
-curl --data "gigabytes=1&filename=/var/log/foo.log" http://localhost:8080/consume-disk
-curl --data "metric=foo&delta=1.14&durationSec=300" http://localhost:8080/bump-metric
-curl http://localhost:8080/bump-metric
-}
-
-_cleanup() {
-  curl --data "gigabytes=0&filename=/var/log/foo.log" http://localhost:8080/consume-disk
-}
-
 _test() {
   _stop_container
   _start_container
   sleep 1
   _report_usage
-  _set_load
-  sleep 4
+  _load
+  sleep 1
   _report_usage
-  _cleanup
+  sleep 5
+  _report_usage
   _stop_container
   echo "Ok."
 }
@@ -53,12 +42,12 @@ _megabytes() {
   local megabytes=${1:-250}
   curl --data "megabytes=${megabytes}&durationSec=6000" ${host}/consume-mem
 }
+
 _load() {
   local host="${1:-localhost:8080}"
-  #local host=${1:-$(_host)}
   curl --data "millicores=250&durationSec=600" ${host}/consume-cpu
-  curl --data "megabytes=500&durationSec=300" ${host}/consume-mem
-  curl --data "gigabytes=4&filename=/var/log/rc-${RANDOM}.log" ${host}/consume-disk
+  curl --data "megabytes=500&durationSec=600" ${host}/consume-mem
+  curl --data "gigabytes=4&durationSec=5&filename=/var/log/rc-${RANDOM}.log" ${host}/consume-disk
   curl --data "metric=foo&delta=1.14&durationSec=300" ${host}/bump-metric
 }
 
