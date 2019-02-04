@@ -118,8 +118,8 @@ spec:
           name: http
         resources:
           requests:
-            cpu: 0.12
-            memory: 200M
+            cpu: 0.10
+            memory: 20M
           limits:
             cpu: 2
             memory: 4Gi
