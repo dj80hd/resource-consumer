@@ -61,9 +61,9 @@ func ConsumeDisk(gigabytes int, durationSec int, filename string) {
 	}
 
 	consumeDisk := exec.Command(
-		"dd", "if=/dev/zero", "bs=1073741824",
+		"dd", "if=/dev/zero", "bs=1048576",
 		fmt.Sprintf("of=%s", filename),
-		fmt.Sprintf("count=%d", gigabytes))
+		fmt.Sprintf("count=%d", gigabytes*1024))
 	freeDisk := exec.Command("rm", filename)
 
 	err = consumeDisk.Run()
@@ -72,7 +72,7 @@ func ConsumeDisk(gigabytes int, durationSec int, filename string) {
 	}
 
 	go func(durationSec int, cmd *exec.Cmd) {
-		time.Sleep(time.Duration(durationSec))
+		time.Sleep(time.Duration(durationSec * 1e9))
 		err := cmd.Run()
 		if err != nil {
 			log.Printf(err.Error())
