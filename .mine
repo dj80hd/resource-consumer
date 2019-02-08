@@ -44,18 +44,33 @@ _host() {
   echo "${RC_HOST:-localhost:8080}"
 }
 
+_duration() {
+  echo "${RC_DURATION:-7200}"
+}
+
 _millicores() {
   [[ -z $1 ]] && { echo "Usage: _millicores <millicores> [<url>]"; return; }
-  local host=${2:-$(_host)}
   local millicores=${1:-250}
-  curl --data "millicores=${millicores}&durationSec=6000" ${host}/consume-cpu
+  local host=${2:-$(_host)}
+  curl --data "millicores=${millicores}&durationSec=7200" ${host}/consume-cpu
+}
+
+_cores() {
+  [[ -z $1 ]] && { echo "Usage: _cores <cores> [<url>]"; return; }
+  local cores=${1:-250}
+  local host=${2:-$(_host)}
+  for i in $(seq 1 $1); do
+    for k in $(seq 1 8); do
+      curl --data "millicores=128&durationSec=$(_duration)" ${host}/consume-cpu
+    done
+  done
 }
 
 _megabytes() {
   [[ -z $1 ]] && { echo "Usage: _megabytes <megabytes> [<url>]"; return; }
   local host=${2:-$(_host)}
   local megabytes=${1:-250}
-  curl --data "megabytes=${megabytes}&durationSec=6000" ${host}/consume-mem
+  curl --data "megabytes=${megabytes}&durationSec=$(_duration)" ${host}/consume-mem
 }
 
 _load() {
