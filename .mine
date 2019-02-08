@@ -1,34 +1,71 @@
 #!/usr/bin/env bash
+<<<<<<< Updated upstream
+#
+# Config:
+#
+# RC_HOST      Http endpoint for resource-consumer (default localhost:8080)
+# RC_DURATION  duration in seconds of each load request (default 7200)
+# RC_NODENAME  load only this kubernetes node (default nothing = all nodes)
+# RC_TOLERATE  tolerate taint eg node-role.kubernetes.io/master (default none)
+
+# Get local cpu usage
+=======
+>>>>>>> Stashed changes
 _cpu() {
   docker stats --no-stream | grep resource-consumer | awk '{print $3}'
 }
 
+<<<<<<< Updated upstream
+# Get local mem useage
+=======
+>>>>>>> Stashed changes
 _mem() {
   docker stats --no-stream | grep resource-consumer | awk '{print $4,$5,$6}' | tr -d ' '
 }
 
+<<<<<<< Updated upstream
+# Get local disk usage
+=======
+>>>>>>> Stashed changes
 _dsk() {
   docker ps -s | grep resource-consumer | awk '{print $(NF-2),$(NF-1),$NF}'
 }
 
+<<<<<<< Updated upstream
+# Print usages
+=======
+>>>>>>> Stashed changes
 _report_usage() {
   echo "CPU: $(_cpu)"
   echo "MEM: $(_mem)"
   echo "DSK: $(_dsk)"
 }
 
+<<<<<<< Updated upstream
+_stop_test_container() {
+=======
 _stop_container() {
+>>>>>>> Stashed changes
   docker stop resource-consumer >/dev/null 2>&1 || true
   docker rm resource-consumer >/dev/null 2>&1 || true
 }
 
+<<<<<<< Updated upstream
+_start_test_container() {
+=======
 _start_container() {
+>>>>>>> Stashed changes
   docker run --name resource-consumer -d -p 8080:8080 dj80hd/resource-consumer
 }
 
 _test() {
+<<<<<<< Updated upstream
+  _stop_test_container
+  _start_test_container
+=======
   _stop_container
   _start_container
+>>>>>>> Stashed changes
   sleep 1
   _report_usage
   _load
@@ -36,7 +73,11 @@ _test() {
   _report_usage
   sleep 5
   _report_usage
+<<<<<<< Updated upstream
+  _stop_test_container
+=======
   _stop_container
+>>>>>>> Stashed changes
   echo "Ok."
 }
 
@@ -48,15 +89,25 @@ _duration() {
   echo "${RC_DURATION:-7200}"
 }
 
+<<<<<<< Updated upstream
+_load_millicores() {
+  [[ -z $1 ]] && { echo "Usage: load_millicores <millicores> [<url>]"; return; }
+=======
 _millicores() {
   [[ -z $1 ]] && { echo "Usage: _millicores <millicores> [<url>]"; return; }
+>>>>>>> Stashed changes
   local millicores=${1:-250}
   local host=${2:-$(_host)}
   curl --data "millicores=${millicores}&durationSec=7200" ${host}/consume-cpu
 }
 
+<<<<<<< Updated upstream
+_load_cores() {
+  [[ -z $1 ]] && { echo "Usage: _load_cores <cores> [<url>]"; return 1; }
+=======
 _cores() {
   [[ -z $1 ]] && { echo "Usage: _cores <cores> [<url>]"; return; }
+>>>>>>> Stashed changes
   local cores=${1:-250}
   local host=${2:-$(_host)}
   for i in $(seq 1 $1); do
@@ -66,10 +117,24 @@ _cores() {
   done
 }
 
+<<<<<<< Updated upstream
+_load_mem_meg() {
+  [[ -z $1 ]] && { echo "Usage: _load_mem_meg <megabytes> [<host>]"; return 1; }
+  local megabytes=${1:-250}
+  local host=${2:-$(_host)}
+  curl --data "megabytes=${megabytes}&durationSec=$(_duration)" ${host}/consume-mem
+}
+
+_load_disk_gig() {
+  [[ -z $1 ]] && { echo "Usage: _load_megabytes <megabytes> [<host>]"; return 1; }
+  local megabytes=${1:-250}
+  local host=${2:-$(_host)}
+=======
 _megabytes() {
   [[ -z $1 ]] && { echo "Usage: _megabytes <megabytes> [<url>]"; return; }
   local host=${2:-$(_host)}
   local megabytes=${1:-250}
+>>>>>>> Stashed changes
   curl --data "megabytes=${megabytes}&durationSec=$(_duration)" ${host}/consume-mem
 }
 
@@ -82,17 +147,41 @@ _load() {
 }
 
 _deploy() {
+<<<<<<< Updated upstream
+  [[ -z $1 ]] && { echo "Usage: _deploy <namespace> [<replicas>]"; return 1; }
+=======
   [[ -z $1 ]] && { echo "Usage: _deploy <namespace> [<replicas>]"; return; }
+>>>>>>> Stashed changes
   local replicas=${2:-1}
   _yaml ${replicas} | kubectl apply -n $1 -f -
 }
 
 _delete() {
+<<<<<<< Updated upstream
+  [[ -z $1 ]] && { echo "Usage: _delete <namespace>"; return 1; }
+=======
   [[ -z $1 ]] && { echo "Usage: _delete <namespace>"; return; }
+>>>>>>> Stashed changes
   local ns=${1:-default}
   _yaml | kubectl delete -n $ns -f -
 }
 
+<<<<<<< Updated upstream
+_node_selector() {
+  if [[ -n "${RC_NODENAME}" ]]; then
+    local hostname=$(kubectl get node ${RC_NODENAME} -o json | jq -r '.metadata.labels["kubernetes.io/hostname"]')
+    echo "{ kubernetes.io/hostname: $hostname }"
+  fi
+}
+
+_tolerations() {
+  if [[ -n "${RC_TOLERATE}" ]]; then
+    echo "[{\"key\": \"${RC_TOLERATE}\", \"operator\": \"Exists\", \"effect\": \"NoSchedule\"}]"
+  fi
+}
+
+=======
+>>>>>>> Stashed changes
 _yaml() {
   local replicas=${1:-1}
   cat <<EOF
@@ -129,6 +218,10 @@ spec:
       labels:
         app: resource-consumer
     spec:
+<<<<<<< Updated upstream
+      nodeSelector: $(_node_selector)
+=======
+>>>>>>> Stashed changes
       containers:
       - image: dj80hd/resource-consumer
         imagePullPolicy: Always
@@ -160,7 +253,11 @@ metadata:
   name: resource-consumer
 spec:
   rules:
+<<<<<<< Updated upstream
+  - host: $(_host)
+=======
   - host: resource-consumer.apps.infralab.mt2.uptake.run
+>>>>>>> Stashed changes
     http:
       paths:
       - backend:
