@@ -37,7 +37,7 @@ func ConsumeCPU(millicores int, durationSec int) {
 	}
 }
 
-//ConsumeMem starts external process consuming millcores of CPU for durationSec
+//ConsumeMem starts external process consuming megabytes of MEM for durationSec
 func ConsumeMem(megabytes int, durationSec int) {
 	log.Printf("/consume-mem megabytes: %v, durationSec: %v", megabytes, durationSec)
 	megabytesString := strconv.Itoa(megabytes) + "M"
