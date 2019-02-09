@@ -46,11 +46,12 @@ func (handler *ResourceConsumerHandler) ServeHTTP(w http.ResponseWriter, req *ht
 		http.Error(w, "HTTP Post required", http.StatusBadRequest)
 		return
 	}
-	// parsing POST request.data and URL data
+
 	if err := req.ParseForm(); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+
 	if req.URL.Path == "/consume-cpu" {
 		handler.handleConsumeCPU(w, req.Form)
 		return
@@ -63,7 +64,6 @@ func (handler *ResourceConsumerHandler) ServeHTTP(w http.ResponseWriter, req *ht
 		handler.handleConsumeDisk(w, req.Form)
 		return
 	}
-	// handle bumpMetric
 	if req.URL.Path == "/bump-metric" {
 		handler.handleBumpMetric(w, req.Form)
 		return
@@ -72,17 +72,17 @@ func (handler *ResourceConsumerHandler) ServeHTTP(w http.ResponseWriter, req *ht
 }
 
 func (handler *ResourceConsumerHandler) handleConsumeCPU(w http.ResponseWriter, query url.Values) {
-	// getting string data for consumeCPU
 	durationSecString := query.Get("durationSec")
 	millicoresString := query.Get("millicores")
+
 	if durationSecString == "" || millicoresString == "" {
 		http.Error(w, "not", http.StatusBadRequest)
 		return
 	}
 
-	// convert data (strings to ints) for consumeCPU
 	durationSec, durationSecError := strconv.Atoi(durationSecString)
 	millicores, millicoresError := strconv.Atoi(millicoresString)
+
 	if durationSecError != nil || millicoresError != nil {
 		http.Error(w, "non-integer millicores or durationSec", http.StatusBadRequest)
 		return
@@ -125,17 +125,17 @@ func (handler *ResourceConsumerHandler) handleConsumeDisk(w http.ResponseWriter,
 }
 
 func (handler *ResourceConsumerHandler) handleConsumeMem(w http.ResponseWriter, query url.Values) {
-	// getting string data for consumeMem
 	durationSecString := query.Get("durationSec")
 	megabytesString := query.Get("megabytes")
+
 	if durationSecString == "" || megabytesString == "" {
 		http.Error(w, "durantionSec or megabytes missing", http.StatusBadRequest)
 		return
 	}
 
-	// convert data (strings to ints) for consumeMem
 	durationSec, durationSecError := strconv.Atoi(durationSecString)
 	megabytes, megabytesError := strconv.Atoi(megabytesString)
+
 	if durationSecError != nil || megabytesError != nil {
 		http.Error(w, "durantionSec and megabytes must be integers", http.StatusBadRequest)
 		return
@@ -176,18 +176,18 @@ func (handler *ResourceConsumerHandler) bumpMetric(metric string, delta float64,
 }
 
 func (handler *ResourceConsumerHandler) handleBumpMetric(w http.ResponseWriter, query url.Values) {
-	// getting string data for handleBumpMetric
 	metric := query.Get("metric")
 	deltaString := query.Get("delta")
 	durationSecString := query.Get("durationSec")
+
 	if durationSecString == "" || metric == "" || deltaString == "" {
 		http.Error(w, "durantionSec, metric, or delta missing", http.StatusBadRequest)
 		return
 	}
 
-	// convert data (strings to ints/floats) for handleBumpMetric
 	durationSec, durationSecError := strconv.Atoi(durationSecString)
 	delta, deltaError := strconv.ParseFloat(deltaString, 64)
+
 	if durationSecError != nil || deltaError != nil {
 		http.Error(w, "durantionSec or delta incorrect", http.StatusBadRequest)
 		return
