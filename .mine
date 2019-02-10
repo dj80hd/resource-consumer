@@ -2,29 +2,17 @@
 #
 # Config:
 #
-# RC_CPU_REQ   cpu request for pod (default = .1 cores)
-# RC_CPU_LIMIT cpu limit for pod (default 1 core)
-# RC_MEM_REQ   mem request for pod (default = 128M)
-# RC_MEM_LIMIT mem limit for pod (default 4G)
 # RC_HOST      Http endpoint for resource-consumer (default localhost:8080)
 # RC_DURATION  duration in seconds of each load request (default 7200)
-# RC_NAMESPACE namespace for load (default 'default')
 # RC_NODENAME  load only this kubernetes node (default nothing = all nodes)
 # RC_TOLERATE  tolerate taint eg node-role.kubernetes.io/master (default none)
-
-_cpu_req()   { echo "${RC_CPU_REQ:-.10}"; }
-_cpu_limit() { echo "${RC_CPU_LIMIT:-1}"; }
-_mem_req()   { echo "${RC_MEM_REQ:-128M}"; }
-_mem_limit() { echo "${RC_MEM_LIMIT:-4G}"; }
-_host()      { echo "${RC_HOST:-localhost:8080}"; }
-_duration()  { echo "${RC_DURATION:-7200}"; }
-_namespace() { echo "${RC_NAMESPACE:-default}"; }
-
-# Show pods servicing load
-_pods() {
-  kubectl get pods -o wide --all-namespaces | grep resource-consumer
+# RC_NAMESPACE namespace for load (default 'default')
+_namespace() {
+  echo ${RC_NAMESPACE:-default}
 }
-
+_pods() {
+  kubectl get pods --all-namespaces | grep resource-consumer
+}
 # Get local cpu usage
 _cpu() {
   docker stats --no-stream | grep resource-consumer | awk '{print $3}'
@@ -70,6 +58,13 @@ _test() {
   echo "Ok."
 }
 
+_host() {
+  echo "${RC_HOST:-localhost:8080}"
+}
+
+_duration() {
+  echo "${RC_DURATION:-7200}"
+}
 
 _load_millicores() {
   [[ -z $1 ]] && { echo "Usage: load_millicores <millicores> [<url>]"; return; }
@@ -182,11 +177,11 @@ spec:
           name: http
         resources:
           requests:
-            cpu: $(_cpu_req)
-            memory: $(_mem_req)
+            cpu: 0.10
+            memory: 20M
           limits:
-            cpu: $(_cpu_limit)
-            memory: $(_mem_limit)
+            cpu: 2
+            memory: 4Gi
 ---
 apiVersion: extensions/v1beta1
 kind: Ingress
