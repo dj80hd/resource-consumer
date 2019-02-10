@@ -11,7 +11,7 @@ _namespace() {
   echo ${RC_NAMESPACE:-default}
 }
 _pods() {
-  kubectl get pods --all-namespaces | grep resource-consumer
+  kubectl get pods -o wide --all-namespaces | grep resource-consumer
 }
 # Get local cpu usage
 _cpu() {
