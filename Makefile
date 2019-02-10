@@ -1,5 +1,6 @@
-IMAGE_NAME=dj80hd/resource-consumer
+VERSION=$(shell cat VERSION)
 COMMIT_SHA=$(shell git rev-parse HEAD)
+IMAGE_NAME=dj80hd/resource-consumer
 
 default: build
 
@@ -22,7 +23,9 @@ clean:
 	rm -f consumer
 
 docker: dep build
-	docker build --rm --build-arg GIT_COMMIT="$(COMMIT_SHA)" --tag "$(IMAGE_NAME):latest" .
+	docker build --rm --build-arg GIT_COMMIT="$(COMMIT_SHA)" --tag "$(IMAGE_NAME):$(VERSION)" .
+	docker tag "$(IMAGE_NAME):$(VERSION)" "$(IMAGE_NAME):latest"
 
 publish: docker
+	docker push "$(IMAGE_NAME):$(VERSION)"
 	docker push "$(IMAGE_NAME):latest"
