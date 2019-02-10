@@ -1,0 +1,203 @@
+#!/usr/bin/env bash
+#
+# Config:
+#
+# RC_HOST      Http endpoint for resource-consumer (default localhost:8080)
+# RC_DURATION  duration in seconds of each load request (default 7200)
+# RC_NODENAME  load only this kubernetes node (default nothing = all nodes)
+# RC_TOLERATE  tolerate taint eg node-role.kubernetes.io/master (default none)
+# RC_NAMESPACE namespace for load (default 'default')
+_namespace() {
+  echo ${RC_NAMESPACE:-default}
+}
+_pods() {
+  kubectl get pods --all-namespaces | grep resource-consumer
+}
+# Get local cpu usage
+_cpu() {
+  docker stats --no-stream | grep resource-consumer | awk '{print $3}'
+}
+
+# Get local mem useage
+_mem() {
+  docker stats --no-stream | grep resource-consumer | awk '{print $4,$5,$6}' | tr -d ' '
+}
+
+# Get local disk usage
+_dsk() {
+  docker ps -s | grep resource-consumer | awk '{print $(NF-2),$(NF-1),$NF}'
+}
+
+# Print usages
+_report_usage() {
+  echo "CPU: $(_cpu)"
+  echo "MEM: $(_mem)"
+  echo "DSK: $(_dsk)"
+}
+
+_stop_test_container() {
+  docker stop resource-consumer >/dev/null 2>&1 || true
+  docker rm resource-consumer >/dev/null 2>&1 || true
+}
+
+_start_test_container() {
+  docker run --name resource-consumer -d -p 8080:8080 dj80hd/resource-consumer
+}
+
+_test() {
+  _stop_test_container
+  _start_test_container
+  sleep 1
+  _report_usage
+  _load
+  sleep 1
+  _report_usage
+  sleep 5
+  _report_usage
+  _stop_test_container
+  echo "Ok."
+}
+
+_host() {
+  echo "${RC_HOST:-localhost:8080}"
+}
+
+_duration() {
+  echo "${RC_DURATION:-7200}"
+}
+
+_load_millicores() {
+  [[ -z $1 ]] && { echo "Usage: load_millicores <millicores> [<url>]"; return; }
+  local millicores=${1:-250}
+  curl --data "millicores=${millicores}&durationSec=7200" $(_host)/consume-cpu
+}
+
+_load_cores() {
+  [[ -z $1 ]] && { echo "Usage: _load_cores <cores> [<url>]"; return 1; }
+  local cores=${1:-250}
+  for i in $(seq 1 $1); do
+    for k in $(seq 1 8); do
+      curl --data "millicores=128&durationSec=$(_duration)" $(_host)/consume-cpu
+    done
+  done
+}
+
+_load_mem_meg() {
+  [[ -z $1 ]] && { echo "Usage: _load_mem_meg <megabytes>"; return 1; }
+  local megabytes=${1:-250}
+  curl --data "megabytes=${megabytes}&durationSec=$(_duration)" $(_host)/consume-mem
+}
+
+_load_disk_gig() {
+  [[ -z $1 ]] && { echo "Usage: _load_disk_gig <gigabytes>"; return 1; }
+  local gigabytes=${1:-250}
+  curl --data "gigabytes=${gigabytes}&durationSec=$(_duration)&filename=/var/log/rc-${RANDOM}.log" $(_host)/consume-disk
+}
+
+_load() {
+  local host="${1:-localhost:8080}"
+  curl --data "millicores=250&durationSec=600" ${host}/consume-cpu
+  curl --data "megabytes=500&durationSec=600" ${host}/consume-mem
+  curl --data "gigabytes=4&durationSec=5&filename=/var/log/rc-${RANDOM}.log" ${host}/consume-disk
+  curl --data "metric=foo&delta=1.14&durationSec=300" ${host}/bump-metric
+}
+
+_deploy() {
+  [[ -z $1 ]] && { echo "Usage: _deploy <replicas>"; return 1; }
+  local replicas=${1:-1}
+  _yaml ${replicas} | kubectl apply -n $(_namespace) -f -
+}
+
+_delete() {
+  _yaml | kubectl delete -n $(_namespace) -f -
+}
+
+_node_selector() {
+  if [[ -n "${RC_NODENAME}" ]]; then
+    local hostname=$(kubectl get node ${RC_NODENAME} -o json | jq -r '.metadata.labels["kubernetes.io/hostname"]')
+    echo "{ kubernetes.io/hostname: $hostname }"
+  fi
+}
+
+_tolerations() {
+  if [[ -n "${RC_TOLERATE}" ]]; then
+    echo "[{\"key\": \"${RC_TOLERATE}\", \"operator\": \"Exists\", \"effect\": \"NoSchedule\"}]"
+  fi
+}
+
+_yaml() {
+  local replicas=${1:-1}
+  cat <<EOF
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: resource-consumer
+  name: resource-consumer
+spec:
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: resource-consumer
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: resource-consumer
+  name: resource-consumer
+spec:
+  replicas: ${replicas}
+  selector:
+    matchLabels:
+      app: resource-consumer
+  template:
+    metadata:
+      name: resource-consumer
+      labels:
+        app: resource-consumer
+    spec:
+      nodeSelector: $(_node_selector)
+      containers:
+      - image: dj80hd/resource-consumer
+        imagePullPolicy: Always
+        livenessProbe:
+          httpGet:
+            path: "/metrics"
+            port: 8080
+          initialDelaySeconds: 3
+          periodSeconds: 10
+        name: resource-consumer
+        ports:
+        - containerPort: 8080
+          name: http
+        resources:
+          requests:
+            cpu: 0.10
+            memory: 20M
+          limits:
+            cpu: 2
+            memory: 4Gi
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    uptake.run/repo: https://github.com/dj80hd/resource-consumer
+  labels:
+    app: resource-consumer
+  name: resource-consumer
+spec:
+  rules:
+  - host: $(_host)
+    http:
+      paths:
+      - backend:
+          serviceName: resource-consumer
+          servicePort: 80
+EOF
+}
