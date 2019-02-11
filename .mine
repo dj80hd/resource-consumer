@@ -7,12 +7,15 @@
 # RC_NODENAME  load only this kubernetes node (default nothing = all nodes)
 # RC_TOLERATE  tolerate taint eg node-role.kubernetes.io/master (default none)
 # RC_NAMESPACE namespace for load (default 'default')
+#
 _namespace() {
   echo ${RC_NAMESPACE:-default}
 }
+
 _pods() {
   kubectl get pods --all-namespaces | grep resource-consumer
 }
+
 # Get local cpu usage
 _cpu() {
   docker stats --no-stream | grep resource-consumer | awk '{print $3}'
@@ -28,32 +31,35 @@ _dsk() {
   docker ps -s | grep resource-consumer | awk '{print $(NF-2),$(NF-1),$NF}'
 }
 
-# Print usages
-_report_usage() {
-  echo "CPU: $(_cpu)"
-  echo "MEM: $(_mem)"
-  echo "DSK: $(_dsk)"
-}
-
 _stop_test_container() {
   docker stop resource-consumer >/dev/null 2>&1 || true
   docker rm resource-consumer >/dev/null 2>&1 || true
 }
 
 _start_test_container() {
-  docker run --name resource-consumer -d -p 8080:8080 dj80hd/resource-consumer
+  docker run --name resource-consumer -d -p 8080:8080 dj80hd/resource-consumer >/dev/null 2>&1
 }
 
 _test() {
+  local host="${1:-localhost:8080}"
   _stop_test_container
   _start_test_container
   sleep 1
-  _report_usage
-  _load
+  _cpu
+  _mem
+  _dsk
+  curl --data "millicores=250&durationSec=5" ${host}/consume-cpu >/dev/null 2>&1
+  curl --data "megabytes=500&durationSec=5" ${host}/consume-mem >/dev/null 2>&1
+  curl --data "gigabytes=4&durationSec=5&filename=/var/log/rc-${RANDOM}.log" ${host}/consume-disk >/dev/null 2>&1
+  curl --data "metric=foo&delta=1.14&durationSec=4" ${host}/bump-metric >/dev/null 2>&1
   sleep 1
-  _report_usage
+  _cpu
+  _mem
+  _dsk
   sleep 5
-  _report_usage
+  _cpu
+  _mem
+  _dsk
   _stop_test_container
   echo "Ok."
 }
@@ -94,13 +100,6 @@ _load_disk_gig() {
   curl --data "gigabytes=${gigabytes}&durationSec=$(_duration)&filename=/var/log/rc-${RANDOM}.log" $(_host)/consume-disk
 }
 
-_load() {
-  local host="${1:-localhost:8080}"
-  curl --data "millicores=250&durationSec=600" ${host}/consume-cpu
-  curl --data "megabytes=500&durationSec=600" ${host}/consume-mem
-  curl --data "gigabytes=4&durationSec=5&filename=/var/log/rc-${RANDOM}.log" ${host}/consume-disk
-  curl --data "metric=foo&delta=1.14&durationSec=300" ${host}/bump-metric
-}
 
 _deploy() {
   [[ -z $1 ]] && { echo "Usage: _deploy <replicas>"; return 1; }
