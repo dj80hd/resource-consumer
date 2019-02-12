@@ -20,7 +20,7 @@ RUN \
   rm -rf /tmp/* /var/tmp/* /var/cache/apk/* /var/cache/distfiles/*
 
 # image stage
-FROM docker.artifactory.uptake.com/base/alpine:latest
+FROM alpine:latest
 
 # stress tool
 ENV STRESS_VERSION=1.0.4
