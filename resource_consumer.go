@@ -21,12 +21,21 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 )
 
 var port = flag.Int("port", 8080, "Port number.")
+var secs = flag.Int("secs", -1, "seconds to remain running; -1 is forever")
 
 func main() {
 	flag.Parse()
-	resourceConsumerHandler := NewResourceConsumerHandler()
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", *port), resourceConsumerHandler))
+
+	if *secs > 1 {
+		go func() {
+			time.Sleep(time.Duration(*secs) * time.Second)
+			log.Fatalf("exit after %d seconds", *secs)
+		}()
+	}
+
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", *port), NewResourceConsumerHandler()))
 }
