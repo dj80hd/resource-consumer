@@ -17,8 +17,8 @@ limitations under the License.
 package main
 
 import (
-	"flag"
 	"fmt"
+	"github.com/namsral/flag"
 	"log"
 	"net/http"
 	"time"
