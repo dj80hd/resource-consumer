@@ -18,7 +18,13 @@ Resource Consumer can help with testing:
 
 ## Usage
 
-Run Resource Consumer locally:
+Command line:
+```bash
+make
+./resource-consumer --help
+```
+
+Docker:
 ```bash
 docker run --name resource-consumer -d -p 8080:8080 dj80hd/resource-consumer
 ```
