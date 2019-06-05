@@ -30,7 +30,7 @@ var secs = flag.Int("secs", -1, "seconds to remain running; -1 is forever")
 func main() {
 	flag.Parse()
 
-	if *secs > 1 {
+	if *secs > 0 {
 		go func() {
 			time.Sleep(time.Duration(*secs) * time.Second)
 			log.Fatalf("exit after %d seconds", *secs)
