@@ -16,11 +16,11 @@ format:
 
 build: format
 	go build -o consume-cpu/consume-cpu consume-cpu/consume_cpu.go
-	go build -o consumer resource_consumer.go resource_consumer_handler.go utils.go
+	go build -o resource-consumer resource_consumer.go resource_consumer_handler.go utils.go
 
 clean:
 	rm -f consume-cpu/consume-cpu
-	rm -f consumer
+	rm -f resource-consumer
 
 docker: dep build
 	docker build --rm --build-arg GIT_COMMIT="$(COMMIT_SHA)" --tag "$(IMAGE_NAME):$(VERSION)" .
