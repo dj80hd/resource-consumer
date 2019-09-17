@@ -36,4 +36,4 @@ RUN \
 COPY --from=build /consumer /consumer
 COPY --from=build /consume-cpu /consume-cpu
 EXPOSE 8080
-ENTRYPOINT ["/consumer"]
+CMD ["/consumer"]
