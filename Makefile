@@ -4,8 +4,6 @@ IMAGE_NAME=dj80hd/resource-consumer
 
 default: build
 
-dep:
-	dep ensure
 
 format:
 	go fmt ./...
@@ -22,7 +20,7 @@ clean:
 	rm -f consume-cpu/consume-cpu
 	rm -f resource-consumer
 
-docker: dep build
+docker: build
 	docker build --rm --build-arg GIT_COMMIT="$(COMMIT_SHA)" --tag "$(IMAGE_NAME):$(VERSION)" .
 	docker tag "$(IMAGE_NAME):$(VERSION)" "$(IMAGE_NAME):latest"
 
