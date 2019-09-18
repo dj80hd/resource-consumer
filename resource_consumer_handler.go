@@ -42,10 +42,6 @@ func (handler *ResourceConsumerHandler) ServeHTTP(w http.ResponseWriter, req *ht
 		handler.handleMetrics(w)
 		return
 	}
-	if req.Method != "POST" {
-		http.Error(w, "HTTP Post required", http.StatusBadRequest)
-		return
-	}
 
 	if err := req.ParseForm(); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
