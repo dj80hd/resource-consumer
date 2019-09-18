@@ -12,9 +12,10 @@ RUN GO111MODULE=on GOOS=linux GOARCH=amd64 go build -o /consumer resource_consum
 FROM alpine:latest
 
 # stress tool
-COPY bin/stress /usr/local/bin/stress
-RUN chmod 644 /usr/local/bin/stress
+COPY bin/stress /stress
+RUN chmod 755 /stress
 COPY --from=build /consumer /consumer
 COPY --from=build /consume-cpu /consume-cpu
+RUN  echo "/consumer" > /run.sh && chmod +x /run.sh
+
 EXPOSE 8080
-CMD ["/consumer"]
