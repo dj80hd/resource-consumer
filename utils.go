@@ -33,7 +33,7 @@ func ConsumeCPU(millicores int, durationSec int) {
 	consumeCPU := exec.Command("/consume-cpu", arg1, arg2)
 	err := consumeCPU.Run()
 	if err != nil {
-		log.Printf(err.Error())
+		log.Print(err.Error())
 	}
 }
 
@@ -46,7 +46,7 @@ func ConsumeMem(megabytes int, durationSec int) {
 	consumeMem := exec.Command("/stress", "-m", "1", "--vm-bytes", megabytesString, "--vm-hang", "0", "-t", durationSecString)
 	err := consumeMem.Run()
 	if err != nil {
-		log.Printf(err.Error())
+		log.Print(err.Error())
 	}
 }
 
@@ -66,14 +66,14 @@ func ConsumeDisk(gigabytes int, durationSec int, filename string) {
 
 	err = consumeDisk.Run()
 	if err != nil {
-		log.Printf(err.Error())
+		log.Print(err.Error())
 	}
 
 	go func(durationSec int, cmd *exec.Cmd) {
 		time.Sleep(time.Duration(durationSec * 1e9))
 		err := cmd.Run()
 		if err != nil {
-			log.Printf(err.Error())
+			log.Print(err.Error())
 		}
 	}(durationSec, freeDisk)
 }
