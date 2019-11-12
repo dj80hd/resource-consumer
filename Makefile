@@ -1,18 +1,20 @@
 VERSION=$(shell cat VERSION)
 COMMIT_SHA=$(shell git rev-parse HEAD)
-IMAGE_NAME=dj80hd/resource-consumer
+IMAGE_NAME=myspot
+LINTER_INSTALLED := $(shell sh -c 'which golangci-lint')
 
 default: build
 
-
-format:
+lint:
 	go fmt ./...
 	go vet `go list ./...`
-	for pkg in `go list ./...`; do \
-		golint -set_exit_status $$pkg || exit 1; \
-	done
+ifdef LINTER_INSTALLED
+	golangci-lint run
+else
+	$(error golangci-lint not found, skipping linting. Installation instructions: https://github.com/golangci/golangci-lint#ci-installation)
+endif
 
-build: format
+build: lint
 	go build -o consume-cpu/consume-cpu consume-cpu/consume_cpu.go
 	go build -o resource-consumer resource_consumer.go resource_consumer_handler.go utils.go
 
