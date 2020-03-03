@@ -29,6 +29,7 @@ Docker:
 docker run --name resource-consumer -d -p 8080:8080 dj80hd/resource-consumer
 ```
 
+
 ## CURL examples
 
 * Take up 1/8 CPU for 10 minutes:
@@ -62,4 +63,26 @@ Observe local cpu, mem, and disk:
 echo "CPU: $(docker stats --no-stream | grep resource-consumer | awk '{print $3}')" && \
 echo "MEM: $(docker stats --no-stream | grep resource-consumer | awk '{print $4,$5,$6}' | tr -d ' ')" && \
 echo "DSK: $(docker ps -s | grep resource-consumer | awk '{print $(NF-2),$(NF-1),$NF}')"
+```
+
+## Kubernetes
+
+Run
+```bash
+kubectl run resource-consumer --image dj80hd/resource-consumer --replicas 2 --expose --port 8080
+```
+
+Use
+```bash
+kubectl run curl --rm -it --image curlimages/curl --restart Never -- curl --data "megabytes=200&durationSec=300" resource-consumer:8080
+```
+
+Test
+```bash
+kubectl top pod | grep resource-consumer
+```
+
+Cleanup
+```
+kubectl delete svc,deploy resource-consumer
 ```
