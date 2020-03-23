@@ -26,7 +26,7 @@ kubectl run resource-consumer --image dj80hd/resource-consumer --replicas 2 --ex
 
 Add Load (more examples below)
 ```bash
-kubectl run curl --rm -it --image curlimages/curl --restart Never -- curl --data "megabytes=200&durationSec=300" resource-consumer:8080
+kubectl run curl --rm -it --image curlimages/curl --restart Never -- curl --data "megabytes=200&durationSec=300" resource-consumer:8080/consume-mem
 ```
 
 Test
