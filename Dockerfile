@@ -14,8 +14,11 @@ FROM alpine:latest
 # stress tool
 COPY bin/stress /stress
 RUN chmod 755 /stress
-COPY --from=build /consumer /consumer
+
 COPY --from=build /consume-cpu /consume-cpu
+
+COPY --from=build /consumer /consumer
 RUN  echo "/consumer" > /run.sh && chmod +x /run.sh
+CMD /run.sh
 
 EXPOSE 8080

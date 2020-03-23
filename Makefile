@@ -1,6 +1,6 @@
 VERSION=$(shell cat VERSION)
 COMMIT_SHA=$(shell git rev-parse HEAD)
-IMAGE_NAME=myspot
+IMAGE_NAME=resource-consumer
 LINTER_INSTALLED := $(shell sh -c 'which golangci-lint')
 
 default: build
