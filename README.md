@@ -1,6 +1,6 @@
 # Resource Consumer
 
-A simplified version of [the kubernetes resource-consumer](https://github.com/kubernetes/kubernetes/tree/master/test/images/resource-consumer) that includes disk usage and is decoupled from the kubernetes build system.
+A simplified version of [the kubernetes resource-consumer](https://github.com/kubernetes/kubernetes/tree/master/test/images/resource-consumer) that is decoupled from the kubernetes build system and provides additional features.
 
 ## Overview
 
