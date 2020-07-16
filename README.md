@@ -39,7 +39,7 @@ Cleanup
 kubectl delete svc,deploy resource-consumer
 ```
 
-## Local
+## Docker
 
 ```bash
 docker run --name resource-consumer -d -p 8080:8080 dj80hd/resource-consumer
